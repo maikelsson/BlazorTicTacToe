@@ -1,0 +1,29 @@
+﻿@page "/register"
+@using Models;
+
+<div class="card text-center w-50" style="margin: auto">
+    <div class="card-header">
+        Register
+    </div>
+    <div class="card-body">
+        <EditForm Model="@RegModel" OnValidSubmit="@HandleValidSubmit">
+            <DataAnnotationsValidator />
+            <h5 class="card-title">Username</h5>
+            <InputText class="form-control" placeholder="Username" id="name" @bind-Value="RegModel.Username" />
+            <ValidationSummary />
+            <button style="padding-top: 10px" class="btn btn-primary" type="submit">Register</button>
+        </EditForm>
+    </div>
+    
+</div>
+
+
+@code {
+
+    private UserRegistrationModel RegModel = new UserRegistrationModel();
+
+    private void HandleValidSubmit()
+    {
+        Console.WriteLine("Submit!");
+    }
+}

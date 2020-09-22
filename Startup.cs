@@ -13,6 +13,7 @@ using BlazorServerApp_Chess.Data;
 using Microsoft.AspNetCore.ResponseCompression;
 using BlazorServerApp_Chess.Hubs;
 using DataAccessLibrary;
+using Microsoft.AspNetCore.Identity;
 
 namespace BlazorServerApp_Chess
 {
@@ -31,12 +32,6 @@ namespace BlazorServerApp_Chess
         {
             services.AddRazorPages();
             services.AddServerSideBlazor();
-            //services.AddResponseCompression(opts =>
-            //{
-            //    opts.MimeTypes = ResponseCompressionDefaults.MimeTypes.Concat(
-            //        new[] { " application/octet-stream " });
-            //});
-
             services.AddSingleton<WeatherForecastService>();
             services.AddTransient<ISQLDataAccess, SQLDataAccess>();
             services.AddTransient<IUserData, UserData>();

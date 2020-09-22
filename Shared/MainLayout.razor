@@ -7,9 +7,16 @@
 <div class="main">
     <div class="top-row px-4">
         <a href="https://docs.microsoft.com/aspnet/" target="_blank">About</a>
+        <a hidden="@isLogged" href="login">Log in</a>
+        <a hidden="@(!isLogged)" href="login" target="_blank">Log out</a>
+        <a href="register">Register</a>
     </div>
 
     <div class="content px-4">
         @Body
     </div>
 </div>
+
+@code {
+    bool isLogged = false;
+}
