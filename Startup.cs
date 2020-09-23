@@ -13,7 +13,6 @@ using BlazorServerApp_Chess.Data;
 using Microsoft.AspNetCore.ResponseCompression;
 using BlazorServerApp_Chess.Hubs;
 using DataAccessLibrary;
-using Microsoft.AspNetCore.Identity;
 
 namespace BlazorServerApp_Chess
 {
@@ -42,7 +41,7 @@ namespace BlazorServerApp_Chess
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
-            //app.UseResponseCaching();
+            app.UseResponseCaching();
 
             if (env.IsDevelopment())
             {
