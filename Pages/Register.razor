@@ -1,29 +1,62 @@
 ﻿@page "/register"
 @using Models;
+@using DataAccessLibrary.Models; 
+
+@inject NavigationManager NavigationManager
 
 <div class="card text-center w-50" style="margin: auto">
     <div class="card-header">
         Register
     </div>
     <div class="card-body">
-        <EditForm Model="@RegModel" OnValidSubmit="@HandleValidSubmit">
+        <EditForm Model="@_userRegistrationModel" OnValidSubmit="@HandleValidSubmit" OnInvalidSubmit="@HandleInvalidSubmit">
             <DataAnnotationsValidator />
-            <h5 class="card-title">Username</h5>
-            <InputText class="form-control" placeholder="Username" id="name" @bind-Value="RegModel.Username" />
             <ValidationSummary />
+            <h5 class="card-title">Username</h5>
+            <div>
+                <InputText class="form-control" placeholder="Username" @bind-Value="_userRegistrationModel.Username" />
+            </div>
+            <div>
+                <InputText type="password" class="form-control" placeholder="Password" @bind-Value="_userRegistrationModel.Password" />
+            </div>
+            <div>
+                <InputText type="password" class="form-control" placeholder="Password" @bind-Value="_userRegistrationModel.ConfirmPassword" />
+            </div>
+            <div>
+                <br />
+            </div>
+            <div>
+
+            </div>
             <button style="padding-top: 10px" class="btn btn-primary" type="submit">Register</button>
+
         </EditForm>
     </div>
-    
-</div>
+</div> 
 
 
 @code {
 
-    private UserRegistrationModel RegModel = new UserRegistrationModel();
+    private UserModel _userModel;
+    private UserRegistrationModel _userRegistrationModel;
+    private bool _displayValidationSummary = false;
+
+    protected override Task OnInitializedAsync()
+    {
+        _userModel = new UserModel();
+        _userRegistrationModel = new UserRegistrationModel();
+
+        return base.OnInitializedAsync();
+    }
 
     private void HandleValidSubmit()
     {
         Console.WriteLine("Submit!");
+        NavigationManager.NavigateTo("/login");
+    }
+
+    private void HandleInvalidSubmit()
+    {
+        _userRegistrationModel = new UserRegistrationModel();
     }
 }

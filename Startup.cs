@@ -13,6 +13,8 @@ using BlazorServerApp_Chess.Data;
 using Microsoft.AspNetCore.ResponseCompression;
 using BlazorServerApp_Chess.Hubs;
 using DataAccessLibrary;
+using Microsoft.AspNetCore.Components.Authorization;
+using Blazored.SessionStorage;
 
 namespace BlazorServerApp_Chess
 {
@@ -31,9 +33,13 @@ namespace BlazorServerApp_Chess
         {
             services.AddRazorPages();
             services.AddServerSideBlazor();
-            services.AddSingleton<WeatherForecastService>();
+                       
             services.AddTransient<ISQLDataAccess, SQLDataAccess>();
             services.AddTransient<IUserData, UserData>();
+
+            services.AddBlazoredSessionStorage();
+
+            services.AddScoped<AuthenticationStateProvider, CustomAuthenticationStateProvider>();
             services.AddSignalR();
 
         }
@@ -58,6 +64,9 @@ namespace BlazorServerApp_Chess
             app.UseStaticFiles();
 
             app.UseRouting();
+
+            app.UseAuthentication();
+            app.UseAuthorization();
 
             app.UseEndpoints(endpoints =>
             {

@@ -1,0 +1,19 @@
+﻿@page "/logout"
+
+@using BlazorServerApp_Chess.Data; 
+
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject NavigationManager NavigationManager
+
+@inject Blazored.SessionStorage.ISessionStorageService sessionStorage
+
+@code {
+
+    protected override Task OnInitializedAsync()
+    {
+        ((CustomAuthenticationStateProvider)AuthenticationStateProvider).MarkUserAsLoggedOut();
+        NavigationManager.NavigateTo("/");
+
+        return base.OnInitializedAsync();
+    }
+}

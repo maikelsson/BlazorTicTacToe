@@ -1,7 +1,57 @@
 ﻿@page "/login"
 
-<h3>Login</h3>
+@using BlazorServerApp_Chess.Data;
+@using DataAccessLibrary.Models;
+
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject NavigationManager NavigationManager
+
+@inject Blazored.SessionStorage.ISessionStorageService sessionStorage
+
+<div>
+    <EditForm Model="@_userModel" OnValidSubmit="@ValidateUser">
+        <div>
+            <h3 style="font-weight:bold; color:brown">Blazor Chess Login</h3>
+        </div>
+        <div>
+            <br />
+        </div>
+        <div>
+            <input class="form-control" @bind="_userModel.UserName" placeholder="Username..." />
+        </div>
+        <div>
+            <br />
+        </div>
+        <div>
+            <input type="password" class="form-control" @bind="_userModel.Password" placeholder="Password" />
+        </div>
+        <div>
+            <br />
+        </div>
+        <div>
+            <button type="submit" class="form-control btn btn-primary" value="Submit">Submit</button>
+        </div>
+    </EditForm>
+</div>
 
 @code {
+
+    private UserModel _userModel;
+
+    protected override Task OnInitializedAsync()
+    {
+        _userModel = new UserModel();
+        return base.OnInitializedAsync();
+    }
+
+    private async Task<bool> ValidateUser()
+    {
+        ((CustomAuthenticationStateProvider)AuthenticationStateProvider).MarkUserAsAuthenticated(_userModel.UserName);
+        NavigationManager.NavigateTo("/");
+
+        await sessionStorage.SetItemAsync("userName", _userModel.UserName);
+
+        return await Task.FromResult(true);
+    }
 
 }

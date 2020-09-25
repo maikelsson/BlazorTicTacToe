@@ -6,10 +6,16 @@
 
 <div class="main">
     <div class="top-row px-4">
-        <a href="https://docs.microsoft.com/aspnet/" target="_blank">About</a>
-        <a hidden="@isLogged" href="login">Log in</a>
-        <a hidden="@(!isLogged)" href="login" target="_blank">Log out</a>
-        <a href="register">Register</a>
+        <AuthorizeView>
+            <Authorized>
+                <a href="logout">Logout</a>
+                <a href="profile">Profile</a>
+            </Authorized>
+            <NotAuthorized>
+                <a href="login">Login</a>
+                <a href="register">Register now</a>
+            </NotAuthorized>
+        </AuthorizeView>
     </div>
 
     <div class="content px-4">
@@ -17,6 +23,3 @@
     </div>
 </div>
 
-@code {
-    bool isLogged = false;
-}

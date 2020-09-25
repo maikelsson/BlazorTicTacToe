@@ -2,11 +2,12 @@
 
   <PropertyGroup>
     <TargetFramework>netcoreapp3.1</TargetFramework>
-    <UserSecretsId>23683884-4a26-427a-8fb1-a5d5918717ab</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Blazored.SessionStorage" Version="1.0.12" />
     <PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="3.1.8" />
+	  
   </ItemGroup>
 
   <ItemGroup>
