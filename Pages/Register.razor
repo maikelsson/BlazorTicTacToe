@@ -1,62 +1,106 @@
 ﻿@page "/register"
 @using Models;
-@using DataAccessLibrary.Models; 
+@using DataAccessLibrary;
+@using DataAccessLibrary.Models;
 
 @inject NavigationManager NavigationManager
+@inject IUserData _Usersdb
 
 <div class="card text-center w-50" style="margin: auto">
     <div class="card-header">
         Register
     </div>
     <div class="card-body">
-        <EditForm Model="@_userRegistrationModel" OnValidSubmit="@HandleValidSubmit" OnInvalidSubmit="@HandleInvalidSubmit">
+        <EditForm Model="@_userRegistrationModel" OnValidSubmit="@HandleValidSubmit">
             <DataAnnotationsValidator />
-            <ValidationSummary />
-            <h5 class="card-title">Username</h5>
-            <div>
-                <InputText class="form-control" placeholder="Username" @bind-Value="_userRegistrationModel.Username" />
+            <div class="input-group mb-3">
+                <div class="input-group-prepend mb-3">
+                    <span class="input-group-text">Username</span>
+                </div>
+                <InputText class="form-control" placeholder="" @bind-Value="_userRegistrationModel.Username" />
+                <div>
+                    <ValidationMessage For="@(() => _userRegistrationModel.Username)"></ValidationMessage>
+                </div>
             </div>
-            <div>
+
+            <div class="input-group mb-3">
+                <div class="input-group-prepend mb-3">
+                    <span class="input-group-text">Password</span>
+                </div>
                 <InputText type="password" class="form-control" placeholder="Password" @bind-Value="_userRegistrationModel.Password" />
+                <div>
+                    <ValidationMessage For="@(() => _userRegistrationModel.Password)"></ValidationMessage>
+                </div>
             </div>
-            <div>
-                <InputText type="password" class="form-control" placeholder="Password" @bind-Value="_userRegistrationModel.ConfirmPassword" />
+
+            <div class="input-group">
+                <div class="input-group-prepend">
+                    <span class="input-group-text">Confirm password</span>
+                </div>
+                <InputText type="password" class="form-control" placeholder="Confirm password" @bind-Value="_userRegistrationModel.ConfirmPassword" />
+                <div>
+                    <ValidationMessage For="@(() => _userRegistrationModel.ConfirmPassword)"></ValidationMessage>
+                </div>
             </div>
             <div>
                 <br />
             </div>
-            <div>
 
-            </div>
             <button style="padding-top: 10px" class="btn btn-primary" type="submit">Register</button>
 
         </EditForm>
     </div>
-</div> 
+</div>
 
 
 @code {
 
+    private List<UserModel> users;
     private UserModel _userModel;
     private UserRegistrationModel _userRegistrationModel;
-    private bool _displayValidationSummary = false;
 
-    protected override Task OnInitializedAsync()
+    protected override async Task OnInitializedAsync()
     {
         _userModel = new UserModel();
         _userRegistrationModel = new UserRegistrationModel();
 
-        return base.OnInitializedAsync();
+        users = await _Usersdb.GetUsers();
+
     }
 
-    private void HandleValidSubmit()
+    private async void HandleValidSubmit()
     {
-        Console.WriteLine("Submit!");
-        NavigationManager.NavigateTo("/login");
+        if (!CheckIfUsernameExistsAlreadyInDb())
+        {
+            _userModel.UserName = _userRegistrationModel.Username;
+            _userModel.Id = users.Count + 1;
+            _userModel.Password = _userRegistrationModel.Password;
+            _userModel.RegDate = DateTime.Now;
+
+            await _Usersdb.InsertUser(_userModel);
+
+            NavigationManager.NavigateTo("/successfullRegister");
+        }
+        else
+        {
+            Console.WriteLine("Submit!");
+            NavigationManager.NavigateTo("/login");
+        }
+
     }
 
-    private void HandleInvalidSubmit()
+    private bool CheckIfUsernameExistsAlreadyInDb()
     {
-        _userRegistrationModel = new UserRegistrationModel();
+        bool result = false;
+        foreach(var user in users)
+        {
+            if(user.UserName == _userRegistrationModel.Username)
+            {
+                result = true;
+                break;
+            }
+        }
+
+        return result;
     }
 }

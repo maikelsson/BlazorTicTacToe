@@ -21,6 +21,7 @@ namespace BlazorServerApp_Chess.Models
         
         [Required]
         [PasswordPropertyText]
+        [StringLength(20, ErrorMessage = "Password length must be 5 to 20 characters.", MinimumLength = 5)]
         [Compare("Password", ErrorMessage = "The password entered did not match.")]
         public string ConfirmPassword { get; set; }
     }
