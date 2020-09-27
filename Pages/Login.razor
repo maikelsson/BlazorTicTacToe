@@ -4,11 +4,14 @@
 
 @using BlazorServerApp_Chess.Data;
 @using DataAccessLibrary.Models;
+@using DataAccessLibrary; 
 
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject NavigationManager NavigationManager
 
 @inject Blazored.SessionStorage.ISessionStorageService sessionStorage
+@inject IUserData _Usersdb
+
 
 <EditForm Model="@_userModel" OnValidSubmit="@ValidateUser">
     <div class="col-12 row">
@@ -40,24 +43,35 @@
 @code {
 
     private UserModel _userModel;
+    private List<UserModel> users;
 
-    protected override Task OnInitializedAsync()
+    protected override async Task OnInitializedAsync()
     {
         _userModel = new UserModel();
-        return base.OnInitializedAsync();
+        users = await _Usersdb.GetUsers();
     }
 
     private async Task<bool> ValidateUser()
     {
 
         //add checks to see if user exists in database etc..
+        foreach(var user in users)
+        {
+            if(user.UserName == _userModel.UserName && user.Password == _userModel.Password)
+            {
+                ((CustomAuthenticationStateProvider)AuthenticationStateProvider).MarkUserAsAuthenticated(_userModel.UserName);
+                NavigationManager.NavigateTo("/index");
 
-        ((CustomAuthenticationStateProvider)AuthenticationStateProvider).MarkUserAsAuthenticated(_userModel.UserName);
-        NavigationManager.NavigateTo("/index");
+                await sessionStorage.SetItemAsync("userName", _userModel.UserName);
 
-        await sessionStorage.SetItemAsync("userName", _userModel.UserName);
+                return await Task.FromResult(true);
+            }
+        }
 
-        return await Task.FromResult(true);
+        _userModel = new UserModel();
+        return await Task.FromResult(false);
+
+
     }
 
 }

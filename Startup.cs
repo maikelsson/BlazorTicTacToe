@@ -15,6 +15,7 @@ using BlazorServerApp_Chess.Hubs;
 using DataAccessLibrary;
 using Microsoft.AspNetCore.Components.Authorization;
 using Blazored.SessionStorage;
+using BlazorServerApp_Chess.Services;
 
 namespace BlazorServerApp_Chess
 {
