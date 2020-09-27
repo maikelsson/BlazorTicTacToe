@@ -1,4 +1,6 @@
-﻿@page "/register"
+﻿@layout CenteredCardLayout
+@page "/register"
+
 @using Models;
 @using DataAccessLibrary;
 @using DataAccessLibrary.Models;
@@ -6,51 +8,42 @@
 @inject NavigationManager NavigationManager
 @inject IUserData _Usersdb
 
-<div class="card text-center w-50" style="margin: auto">
-    <div class="card-header">
-        Register
+<EditForm Model="@_userRegistrationModel" OnValidSubmit="@HandleValidSubmit">
+    <DataAnnotationsValidator />
+    <div class="col-12 row">
+        <h3 style="font-weight:bold; color:brown">Blazor Chess Register</h3>
     </div>
-    <div class="card-body">
-        <EditForm Model="@_userRegistrationModel" OnValidSubmit="@HandleValidSubmit">
-            <DataAnnotationsValidator />
-            <div class="input-group mb-3">
-                <div class="input-group-prepend mb-3">
-                    <span class="input-group-text">Username</span>
-                </div>
-                <InputText class="form-control" placeholder="" @bind-Value="_userRegistrationModel.Username" />
-                <div>
-                    <ValidationMessage For="@(() => _userRegistrationModel.Username)"></ValidationMessage>
-                </div>
-            </div>
-
-            <div class="input-group mb-3">
-                <div class="input-group-prepend mb-3">
-                    <span class="input-group-text">Password</span>
-                </div>
-                <InputText type="password" class="form-control" placeholder="Password" @bind-Value="_userRegistrationModel.Password" />
-                <div>
-                    <ValidationMessage For="@(() => _userRegistrationModel.Password)"></ValidationMessage>
-                </div>
-            </div>
-
-            <div class="input-group">
-                <div class="input-group-prepend">
-                    <span class="input-group-text">Confirm password</span>
-                </div>
-                <InputText type="password" class="form-control" placeholder="Confirm password" @bind-Value="_userRegistrationModel.ConfirmPassword" />
-                <div>
-                    <ValidationMessage For="@(() => _userRegistrationModel.ConfirmPassword)"></ValidationMessage>
-                </div>
-            </div>
-            <div>
-                <br />
-            </div>
-
-            <button style="padding-top: 10px" class="btn btn-primary" type="submit">Register</button>
-
-        </EditForm>
+    <div>
+        <br />
     </div>
-</div>
+    <div class="col-12 row">
+        <InputText class="form-control" @bind-Value="_userRegistrationModel.Username" placeholder="username" />
+        <ValidationMessage For="@(() => _userRegistrationModel.Username)" />
+    </div>
+    <div>
+        <br />
+    </div>
+    <div class="col-12 row">
+        <InputText type="password" class="form-control" @bind-Value="_userRegistrationModel.Password" placeholder="Password" />
+        <ValidationMessage For="@(() => _userRegistrationModel.Password)" />
+    </div>
+    <div>
+        <br />
+    </div>
+    <div class="col-12 row">
+        <InputText type="password" class="form-control" @bind-Value="_userRegistrationModel.ConfirmPassword" placeholder="Confirm password" />
+        <ValidationMessage For="@(() => _userRegistrationModel.ConfirmPassword)" />
+    </div>
+    <div>
+        <br />
+    </div>
+    <div class="col-12 row">
+        <span class="col-12"></span>
+        <button type="submit" class="form-control col-6 btn btn-primary" value="Register">Register</button>
+        <a class="btn btn-link" href="/">Login</a>
+    </div>
+
+</EditForm>
 
 
 @code {
@@ -92,9 +85,9 @@
     private bool CheckIfUsernameExistsAlreadyInDb()
     {
         bool result = false;
-        foreach(var user in users)
+        foreach (var user in users)
         {
-            if(user.UserName == _userRegistrationModel.Username)
+            if (user.UserName == _userRegistrationModel.Username)
             {
                 result = true;
                 break;

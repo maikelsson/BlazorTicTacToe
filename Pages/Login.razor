@@ -1,4 +1,6 @@
-﻿@page "/login"
+﻿@layout CenteredCardLayout
+
+@page "/"
 
 @using BlazorServerApp_Chess.Data;
 @using DataAccessLibrary.Models;
@@ -8,31 +10,32 @@
 
 @inject Blazored.SessionStorage.ISessionStorageService sessionStorage
 
-<div>
-    <EditForm Model="@_userModel" OnValidSubmit="@ValidateUser">
-        <div>
-            <h3 style="font-weight:bold; color:brown">Blazor Chess Login</h3>
-        </div>
-        <div>
-            <br />
-        </div>
-        <div>
-            <input class="form-control" @bind="_userModel.UserName" placeholder="Username..." />
-        </div>
-        <div>
-            <br />
-        </div>
-        <div>
-            <input type="password" class="form-control" @bind="_userModel.Password" placeholder="Password" />
-        </div>
-        <div>
-            <br />
-        </div>
-        <div>
-            <button type="submit" class="form-control btn btn-primary" value="Submit">Submit</button>
-        </div>
-    </EditForm>
-</div>
+<EditForm Model="@_userModel" OnValidSubmit="@ValidateUser">
+    <div class="col-12 row">
+        <h3 style="font-weight:bold; color:brown">Blazor Chess Login</h3>
+    </div>
+    <div>
+        <br />
+    </div>
+    <div class="col-12 row">
+        <input class="form-control" @bind="_userModel.UserName" placeholder="username" />
+    </div>
+    <div>
+        <br />
+    </div>
+    <div class="col-12 row">
+        <input type="password" class="form-control" @bind="_userModel.Password" placeholder="Password" />
+    </div>
+    <div>
+        <br />
+    </div>
+    <div class="col-12 row">
+        <span class="col-12"></span>
+        <button type="submit" class="form-control col-6 btn btn-primary" value="Login">Log in</button>
+        <a class="btn btn-link" href="register">Register</a>
+    </div>
+</EditForm>
+
 
 @code {
 
@@ -46,8 +49,11 @@
 
     private async Task<bool> ValidateUser()
     {
+
+        //add checks to see if user exists in database etc..
+
         ((CustomAuthenticationStateProvider)AuthenticationStateProvider).MarkUserAsAuthenticated(_userModel.UserName);
-        NavigationManager.NavigateTo("/");
+        NavigationManager.NavigateTo("/index");
 
         await sessionStorage.SetItemAsync("userName", _userModel.UserName);
 
