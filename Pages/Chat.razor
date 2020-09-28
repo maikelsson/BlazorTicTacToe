@@ -1,12 +1,17 @@
 ﻿@page "/chathub"
+
 @using Microsoft.AspNetCore.SignalR.Client
+@using BlazorServerApp_Chess.Data  
+
 @inject NavigationManager NavigationManager
+@inject Blazored.SessionStorage.ISessionStorageService sessionStorage
+
 @implements IDisposable
 
-<div class="form-group">
+
+<div>
     <label>
-        User:
-        <input @bind="userInput" />
+        <a>@currentUserName</a>
     </label>
 </div>
 <div class="form-group">
@@ -31,6 +36,7 @@
     private List<string> messages = new List<string>();
     private string userInput;
     private string messageInput;
+    private string currentUserName;
 
     protected override async Task OnInitializedAsync()
     {
@@ -39,18 +45,21 @@
             .WithUrl(NavigationManager.ToAbsoluteUri("/chathub"))
             .Build();
 
-        hubConnection.On<string, string>("ReceiveMessage", (user, message) =>
+        hubConnection.On<string, string, string>("ReceiveMessage", (user, message, time) =>
         {
-            var encodedMsg = $"{user}: {message}";
+            var encodedMsg = $"{time} >> {user} > {message}";
             messages.Add(encodedMsg);
             StateHasChanged();
         });
 
         await hubConnection.StartAsync();
+        currentUserName = await sessionStorage.GetItemAsync<string>("userName");
+
     }
 
     Task Send() =>
-        hubConnection.SendAsync("SendMessage", userInput, messageInput);
+     hubConnection.SendAsync("SendMessage", currentUserName, messageInput, DateTime.Now.ToShortTimeString());
+
 
     public bool IsConnected =>
         hubConnection.State == HubConnectionState.Connected;
