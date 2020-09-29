@@ -12,9 +12,12 @@ namespace BlazorServerApp_Chess.Services
     {
         private IUserData _userDataDB;
 
-        public DatabaseAccessService()
+        public DatabaseAccessService(IUserData userDataDB)
         {
-
+            _userDataDB = userDataDB;
         }
+
+
+
     }
 }

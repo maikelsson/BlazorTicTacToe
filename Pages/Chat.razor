@@ -3,6 +3,8 @@
 @using Microsoft.AspNetCore.SignalR.Client
 @using BlazorServerApp_Chess.Data  
 
+@using DataAccessLibrary.Models; 
+
 @inject NavigationManager NavigationManager
 @inject Blazored.SessionStorage.ISessionStorageService sessionStorage
 
@@ -22,6 +24,7 @@
 </div>
 <button @onclick="Send" disabled="@(!IsConnected)">Send</button>
 
+<p>@usersConnectedCount users online!</p>
 <hr>
 
 <ul id="messagesList">
@@ -34,9 +37,10 @@
 @code {
     private HubConnection hubConnection;
     private List<string> messages = new List<string>();
-    private string userInput;
     private string messageInput;
     private string currentUserName;
+    private List<UserModel> users;
+    private int usersConnectedCount = 0;
 
     protected override async Task OnInitializedAsync()
     {
@@ -53,19 +57,27 @@
         });
 
         await hubConnection.StartAsync();
+
         currentUserName = await sessionStorage.GetItemAsync<string>("userName");
+
+        await hubConnection.SendAsync("SendMessageToOthers", currentUserName);
+        usersConnectedCount = BlazorServerApp_Chess.Hubs.ChatHub.connectionIds.Count;
 
     }
 
+    
+
     Task Send() =>
-     hubConnection.SendAsync("SendMessage", currentUserName, messageInput, DateTime.Now.ToShortTimeString());
+        hubConnection.SendAsync("SendMessage", currentUserName, messageInput, DateTime.Now.ToShortTimeString());
 
 
     public bool IsConnected =>
         hubConnection.State == HubConnectionState.Connected;
 
+
     public void Dispose()
     {
+        hubConnection.SendAsync("SendMessage", currentUserName, "left the chat!", DateTime.Now.ToShortTimeString());
         _ = hubConnection.DisposeAsync();
     }
 }
