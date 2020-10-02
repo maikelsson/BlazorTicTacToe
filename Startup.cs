@@ -38,9 +38,12 @@ namespace BlazorServerApp_Chess
             services.AddTransient<ISQLDataAccess, SQLDataAccess>();
             services.AddTransient<IUserData, UserData>();
 
+
             services.AddBlazoredSessionStorage();
 
             services.AddScoped<AuthenticationStateProvider, CustomAuthenticationStateProvider>();
+            services.AddScoped<UserService>();
+
             services.AddSignalR();
 
         }

@@ -5,6 +5,7 @@
 @using BlazorServerApp_Chess.Data;
 @using DataAccessLibrary.Models;
 @using DataAccessLibrary; 
+@using BlazorServerApp_Chess.Components;
 
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject NavigationManager NavigationManager
@@ -14,12 +15,21 @@
 
 
 <EditForm Model="@_userModel" OnValidSubmit="@ValidateUser">
+
     <div class="col-12 row">
         <h3 style="font-weight:bold; color:brown">Blazor Chess Login</h3>
     </div>
     <div>
         <br />
     </div>
+
+    @if (LoginNotSuccessfull)
+    {
+        <div class="col-12 row">
+            <span class="col-12"> </span>
+            <CustomAlertComponent Message="Password or username wasn't correct!"></CustomAlertComponent>
+        </div>
+    }
     <div class="col-12 row">
         <input class="form-control" @bind="_userModel.UserName" placeholder="username" />
     </div>
@@ -44,6 +54,7 @@
 
     private UserModel _userModel;
     private List<UserModel> users;
+    private bool LoginNotSuccessfull = false;
 
     protected override async Task OnInitializedAsync()
     {
@@ -68,6 +79,7 @@
             }
         }
 
+        LoginNotSuccessfull = true;
         _userModel = new UserModel();
         return await Task.FromResult(false);
 

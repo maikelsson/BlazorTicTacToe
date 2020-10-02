@@ -22,9 +22,15 @@ namespace BlazorServerApp_Chess.Hubs
             return base.OnConnectedAsync();
         }
 
-        public async Task SendMessage(string user, string message, string time)
+        public override Task OnDisconnectedAsync(Exception exception)
         {
-            await Clients.All.SendAsync("ReceiveMessage", user, message, time);
+            connectionIds.Remove(Context.ConnectionId);
+            return base.OnDisconnectedAsync(exception);
+        }
+
+        public async Task SendMessage(string user, string message)
+        {
+            await Clients.All.SendAsync("ReceiveMessage", user, message, DateTime.Now.ToShortTimeString());
         }
 
         public async Task SendMessageToOthers(string user)

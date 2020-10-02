@@ -1,12 +1,14 @@
 ﻿@page "/chathub"
 
 @using Microsoft.AspNetCore.SignalR.Client
-@using BlazorServerApp_Chess.Data  
+@using BlazorServerApp_Chess.Data
 
-@using DataAccessLibrary.Models; 
+@using DataAccessLibrary.Models;
+@using BlazorServerApp_Chess.Services;
 
 @inject NavigationManager NavigationManager
 @inject Blazored.SessionStorage.ISessionStorageService sessionStorage
+@inject UserService UserService
 
 @implements IDisposable
 
@@ -22,7 +24,7 @@
         <input @bind="messageInput" size="50" />
     </label>
 </div>
-<button @onclick="Send" disabled="@(!IsConnected)">Send</button>
+<button @onclick="@(() => UserService.Send("hesus", messageInput))" disabled="@(!UserService.IsConnected)">Send</button>
 
 <p>@usersConnectedCount users online!</p>
 <hr>
@@ -42,33 +44,51 @@
     private List<UserModel> users;
     private int usersConnectedCount = 0;
 
-    protected override async Task OnInitializedAsync()
+
+    protected override void OnInitialized()
     {
 
-        hubConnection = new HubConnectionBuilder()
-            .WithUrl(NavigationManager.ToAbsoluteUri("/chathub"))
-            .Build();
+        //hubConnection = new HubConnectionBuilder()
+        //    .WithUrl(NavigationManager.ToAbsoluteUri("/chathub"))
+        //    .Build();
+        //
+        //hubConnection.On<string, string, string>("ReceiveMessage", (user, message, time) =>
+        //{
+        //    var encodedMsg = $"{time} >> {user} > {message}";
+        //    messages.Add(encodedMsg);
+        //    StateHasChanged();
+        //});
+        //
+        //await hubConnection.StartAsync();
+        //
+        //currentUserName = await sessionStorage.GetItemAsync<string>("userName");
+        //
+        //await hubConnection.SendAsync("SendMessageToOthers", currentUserName);
+        //usersConnectedCount = BlazorServerApp_Chess.Hubs.ChatHub.connectionIds.Count;
 
-        hubConnection.On<string, string, string>("ReceiveMessage", (user, message, time) =>
-        {
-            var encodedMsg = $"{time} >> {user} > {message}";
-            messages.Add(encodedMsg);
-            StateHasChanged();
-        });
-
-        await hubConnection.StartAsync();
-
-        currentUserName = await sessionStorage.GetItemAsync<string>("userName");
-
-        await hubConnection.SendAsync("SendMessageToOthers", currentUserName);
-        usersConnectedCount = BlazorServerApp_Chess.Hubs.ChatHub.connectionIds.Count;
+        UserService.Notify += OnNotify;
 
     }
 
-    
+    public void OnNotify()
+    {
+        if (!string.IsNullOrEmpty(UserService.User))
+        {
+            var encodedMsg = UserService.User + " says " +
+                                                        UserService.Message;
+            messages.Add(encodedMsg);
+        }
+
+        InvokeAsync(() =>
+        {
+            StateHasChanged();
+        });
+
+    }
+
 
     Task Send() =>
-        hubConnection.SendAsync("SendMessage", currentUserName, messageInput, DateTime.Now.ToShortTimeString());
+    hubConnection.SendAsync("SendMessage", currentUserName, messageInput, DateTime.Now.ToShortTimeString());
 
 
     public bool IsConnected =>
