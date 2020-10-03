@@ -24,10 +24,12 @@
         <input @bind="messageInput" size="50" />
     </label>
 </div>
-<button @onclick="@(() => UserService.Send("hesus", messageInput))" disabled="@(!UserService.IsConnected)">Send</button>
+<button @onclick="@(() => UserService.Send(currentUserName, messageInput))" disabled="@(!UserService.IsConnected)">Send</button>
 
 <p>@usersConnectedCount users online!</p>
 <hr>
+
+<p>notifies: @notifyCount</p>
 
 <ul id="messagesList">
     @foreach (var message in messages)
@@ -37,15 +39,16 @@
 </ul>
 
 @code {
-    private HubConnection hubConnection;
     private List<string> messages = new List<string>();
     private string messageInput;
     private string currentUserName;
     private List<UserModel> users;
     private int usersConnectedCount = 0;
+    public int notifyCount = 0;
+    private bool firstRender = true;
 
 
-    protected override void OnInitialized()
+    protected async override Task OnInitializedAsync()
     {
 
         //hubConnection = new HubConnectionBuilder()
@@ -64,18 +67,40 @@
         //currentUserName = await sessionStorage.GetItemAsync<string>("userName");
         //
         //await hubConnection.SendAsync("SendMessageToOthers", currentUserName);
-        //usersConnectedCount = BlazorServerApp_Chess.Hubs.ChatHub.connectionIds.Count;
+
+
 
         UserService.Notify += OnNotify;
 
+
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            currentUserName = await sessionStorage.GetItemAsync<string>("userName");
+            UserService.SendGreetings(currentUserName);
+
+            var encodedMsg = $"{UserService.User} connected to server!";
+            messages.Add(encodedMsg);
+
+            await InvokeAsync(() =>
+            {
+                StateHasChanged();
+            });
+
+        }
     }
 
     public void OnNotify()
     {
+        notifyCount++;
+
+        //Checks if user actually exists, else don't do anything
         if (!string.IsNullOrEmpty(UserService.User))
         {
-            var encodedMsg = UserService.User + " says " +
-                                                        UserService.Message;
+            var encodedMsg = $"{UserService.Time} : {UserService.User} > {UserService.Message}";
             messages.Add(encodedMsg);
         }
 
@@ -86,18 +111,11 @@
 
     }
 
-
-    Task Send() =>
-    hubConnection.SendAsync("SendMessage", currentUserName, messageInput, DateTime.Now.ToShortTimeString());
-
-
-    public bool IsConnected =>
-        hubConnection.State == HubConnectionState.Connected;
-
+    //Task Send() =>
+    //hubConnection.SendAsync("SendMessage", currentUserName, messageInput, DateTime.Now.ToShortTimeString());
 
     public void Dispose()
     {
-        hubConnection.SendAsync("SendMessage", currentUserName, "left the chat!", DateTime.Now.ToShortTimeString());
-        _ = hubConnection.DisposeAsync();
+        UserService.Notify -= OnNotify;
     }
 }

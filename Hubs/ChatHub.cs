@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.SignalR;
+﻿using Blazored.SessionStorage;
+using Microsoft.AspNetCore.SignalR;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,11 +16,14 @@ namespace BlazorServerApp_Chess.Hubs
 
         public static HashSet<string> connectionIds = new HashSet<string>();
 
-        public override Task OnConnectedAsync()
+        public async override Task OnConnectedAsync()
         {
-            connectionIds.Add(Context.ConnectionId);
-            GetAllActiveConnections();
-            return base.OnConnectedAsync();
+            if (!connectionIds.Contains(Context.ConnectionId))
+            {
+                connectionIds.Add(Context.ConnectionId);
+            }
+
+            await base.OnConnectedAsync();
         }
 
         public override Task OnDisconnectedAsync(Exception exception)
@@ -31,6 +35,7 @@ namespace BlazorServerApp_Chess.Hubs
         public async Task SendMessage(string user, string message)
         {
             await Clients.All.SendAsync("ReceiveMessage", user, message, DateTime.Now.ToShortTimeString());
+            
         }
 
         public async Task SendMessageToOthers(string user)
@@ -39,9 +44,9 @@ namespace BlazorServerApp_Chess.Hubs
             await Clients.Others.SendAsync("ReceiveMessage", user, message, DateTime.Now.ToShortTimeString());
         }
 
-        public int GetAllActiveConnections()
+        public async Task<int> GetAllActiveConnections()
         {
-            return connectionIds.Count;
+            return await Task.FromResult(connectionIds.Count);
         }
     }
 }
