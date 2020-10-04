@@ -74,7 +74,6 @@
                 NavigationManager.NavigateTo("/index");
 
                 await sessionStorage.SetItemAsync("userName", _userModel.UserName);
-
                 return await Task.FromResult(true);
             }
         }
