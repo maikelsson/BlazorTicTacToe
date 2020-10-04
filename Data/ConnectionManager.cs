@@ -25,6 +25,7 @@ namespace BlazorServerApp_Chess.Data
 
         public void RemoveConnection(string connectionId)
         {
+
             lock (userMap)
             {
                 foreach (var username in userMap.Keys)

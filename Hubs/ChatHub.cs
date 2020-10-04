@@ -1,8 +1,11 @@
 ﻿
+using Blazored.SessionStorage;
 using BlazorServerApp_Chess.Data;
 using Microsoft.AspNetCore.SignalR;
 using System;
 using System.Collections.Generic;
+using System.Data.SqlTypes;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -10,22 +13,29 @@ namespace BlazorServerApp_Chess.Hubs
 {
     public static class UserHandler
     {
+
     }
 
     public class ChatHub : Hub
     {
 
         public static HashSet<string> connectionIds = new HashSet<string>();
+        private IConnectionManager _connectionManager;
 
-        public override Task OnConnectedAsync()
+        public ChatHub(IConnectionManager connectionManager)
+        {
+            _connectionManager = connectionManager;
+        }
+
+        public override async Task OnConnectedAsync()
         {
             if (!connectionIds.Contains(Context.ConnectionId))
             {
                 connectionIds.Add(Context.ConnectionId);
-                Clients.All.SendAsync("ReceiveUsersCount", connectionIds.Count);
+                await Clients.All.SendAsync("ReceiveUsersCount", connectionIds.Count);
             }
             
-            return base.OnConnectedAsync();
+            await base.OnConnectedAsync();
         }
 
         public override Task OnDisconnectedAsync(Exception exception)

@@ -4,10 +4,11 @@
 @using BlazorServerApp_Chess.Data
 
 @using DataAccessLibrary.Models;
-@using BlazorServerApp_Chess.Services;
 
 @inject NavigationManager NavigationManager
 @inject Blazored.SessionStorage.ISessionStorageService sessionStorage
+@inject IConnectionManager connectionManager
+
 
 @implements IDisposable
 
@@ -36,8 +37,18 @@
     }
 </ul>
 
-@code {
+<ul id="usersList">
+    @foreach (var user in connectionManager.OnlineUsers)
+    {
+        <li>
+            <a href="/profile/@user">@user</a>
+        </li>
+    }
+</ul>
 
+<p>@connectionId</p>
+
+@code {
 
     private HubConnection hubConnection;
     private List<string> messages = new List<string>();
@@ -45,6 +56,7 @@
     private string currentUserName;
     private List<UserModel> users;
     private int usersConnectedCount = 0;
+    private string connectionId;
 
     protected override async Task OnInitializedAsync()
     {
@@ -60,16 +72,19 @@
             messages.Add(encodedMsg);
             StateHasChanged();
         });
-        
+
         hubConnection.On<int>("ReceiveUsersCount", (count) =>
         {
             usersConnectedCount = count;
             StateHasChanged();
         });
 
+
         await hubConnection.StartAsync();
 
-        currentUserName = await sessionStorage.GetItemAsync<string>("userName");
+        connectionId = hubConnection.ConnectionId;
+        connectionManager.AddConnection(currentUserName, connectionId);
+
 
     }
 
@@ -78,29 +93,10 @@
         if (firstRender)
         {
             currentUserName = await sessionStorage.GetItemAsync<string>("userName");
-
             await SendGreetings();
-            usersConnectedCount = BlazorServerApp_Chess.Hubs.ChatHub.connectionIds.Count;
+            usersConnectedCount = connectionManager.OnlineUsers.Count();
         }
     }
-
-    //public void OnNotify()
-    //{
-    //    notifyCount++;
-    //
-    //    //Checks if user actually exists, else don't do anything
-    //    if (!string.IsNullOrEmpty(UserService.User))
-    //    {
-    //        var encodedMsg = $"{UserService.Time} : {UserService.User} > {UserService.Message}";
-    //        messages.Add(encodedMsg);
-    //    }
-    //
-    //    InvokeAsync(() =>
-    //    {
-    //        StateHasChanged();
-    //    });
-    //
-    //}
 
     public bool IsConnected =>
         hubConnection.State == HubConnectionState.Connected;
@@ -114,6 +110,8 @@
     public void Dispose()
     {
         hubConnection.SendAsync("SendMessage", currentUserName, $"{currentUserName} left the chat!");
+        connectionManager.RemoveConnection(connectionId);
+        StateHasChanged();
         _ = hubConnection.DisposeAsync();
     }
 }
