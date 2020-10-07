@@ -18,45 +18,61 @@
         <a>@currentUserName</a>
     </label>
 </div>
-<div class="form-group">
-    <label>
-        Message:
-        <input @bind="messageInput" size="50" />
-    </label>
+
+
+<p>
+    <button class="btn btn-outline-primary" type="button" data-toggle="collapse" data-target="#multiCollapseExample2" aria-expanded="false" aria-controls="multiCollapseExample2">
+        <span class="oi oi-person"></span> Users <span class="badge badge-primary badge-pill">@usersConnectedCount</span>
+    </button>
+</p>
+
+<div class="row">
+    <div class="col">
+        <div class="collapse multi-collapse" id="multiCollapseExample2">
+            <div class="col-6 card card-body">
+                @foreach (var user in connectionManager.OnlineUsers)
+                {
+                    <a class="btn-dark" href="/profile/@user">@user</a>
+                }
+            </div>
+        </div>
+    </div>
 </div>
-<button @onclick="Send" disabled="@(!IsConnected)">Send</button>
 
-<p>@usersConnectedCount users online!</p>
-<hr>
+<div>
+    <div>
+
+    </div>
+    <ul id="messagesList">
+        @foreach (var message in messages)
+        {
+            <li>@message</li>
+        }
+    </ul>
+    <div class="form-group">
+        <label>
+            Message:
+            <input @bind="messageInput" size="50" @onkeyup="(e => OnClickEventTest(e))" />
+        </label>
+    </div>
+</div>
 
 
-<ul id="messagesList">
-    @foreach (var message in messages)
-    {
-        <li>@message</li>
-    }
-</ul>
-
-<ul id="usersList">
-    @foreach (var user in connectionManager.OnlineUsers)
-    {
-        <li>
-            <a href="/profile/@user">@user</a>
-        </li>
-    }
-</ul>
-
-<p>@connectionId</p>
 
 @code {
 
     private HubConnection hubConnection;
+
     private List<string> messages = new List<string>();
+    private List<UserModel> users;
+
     private string messageInput;
     private string currentUserName;
-    private List<UserModel> users;
+
     private int usersConnectedCount = 0;
-    private string connectionId;
+
+    public bool IsConnected =>
+        hubConnection.State == HubConnectionState.Connected;
 
     protected override async Task OnInitializedAsync()
     {
@@ -79,12 +95,7 @@
             StateHasChanged();
         });
 
-
         await hubConnection.StartAsync();
-
-        connectionId = hubConnection.ConnectionId;
-        connectionManager.AddConnection(currentUserName, connectionId);
-
 
     }
 
@@ -93,13 +104,29 @@
         if (firstRender)
         {
             currentUserName = await sessionStorage.GetItemAsync<string>("userName");
+
+            if (!connectionManager.OnlineUsers.Contains(currentUserName))
+            {
+                connectionManager.AddConnection(currentUserName, hubConnection.ConnectionId);
+            }
+            else
+            {
+                connectionManager.UpdateConnectionId(currentUserName, hubConnection.ConnectionId);
+            }
+
             await SendGreetings();
             usersConnectedCount = connectionManager.OnlineUsers.Count();
         }
     }
 
-    public bool IsConnected =>
-        hubConnection.State == HubConnectionState.Connected;
+    protected async Task OnClickEventTest(KeyboardEventArgs k)
+    {
+        if (k.Key == "Enter")
+        {
+            await Task.FromResult(hubConnection.SendAsync("SendMessage", currentUserName, messageInput));
+            messageInput = "";
+        }
+    }
 
     Task Send() =>
         hubConnection.SendAsync("SendMessage", currentUserName, messageInput);
@@ -110,7 +137,7 @@
     public void Dispose()
     {
         hubConnection.SendAsync("SendMessage", currentUserName, $"{currentUserName} left the chat!");
-        connectionManager.RemoveConnection(connectionId);
+        connectionManager.RemoveConnection(hubConnection.ConnectionId);
         StateHasChanged();
         _ = hubConnection.DisposeAsync();
     }

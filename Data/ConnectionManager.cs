@@ -11,6 +11,21 @@ namespace BlazorServerApp_Chess.Data
 
         public IEnumerable<string> OnlineUsers { get { return userMap.Keys; } }
 
+        public void UpdateConnectionId(string username, string connectionId)
+        {
+            lock (userMap)
+            {
+                if (!userMap.ContainsKey(username))
+                {
+                    return;
+                } 
+                else
+                {
+                    userMap[username] = new HashSet<string>();
+                }
+            }
+        }
+
         public void AddConnection(string username, string connectionId)
         {
             lock (userMap)
