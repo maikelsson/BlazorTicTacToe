@@ -1,0 +1,74 @@
+﻿@page "/game"
+
+<style>
+
+    .ads {
+        text-align: center;
+        margin: .4vw 0;
+        background: #F4CC70;
+        padding: .4vw;
+    }
+
+    .content {
+        margin: .4vw 0;
+        padding: .4vw;
+    }
+
+    .tic-panel {
+        border: solid 2px black;
+        margin: .4vw 0;
+        background: #66A5AD;
+        padding: .4vw;
+    }
+
+    .tic-box {
+        border: solid black 1px;
+        font-size: 5vw;
+        background: #6AB187;
+        text-align: center;
+        color: lavender;
+        width: 2%;
+        height: 2%;
+    }
+
+    .tic-box:hover {
+        background: #20948B;
+    }
+
+</style>
+
+<center>
+    <h3>Board</h3>
+</center>
+
+<center>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-12 col-sm-6">
+                <div class="container-fluid tic-container">
+                    <div class="row tic-row">
+                        <div class="col-4 tic-box"> 1 </div>
+                        <div class="col-4 tic-box"> 2 </div>
+                        <div class="col-4 tic-box"> 3 </div>
+                    </div>
+                    <div class="row tic-row">
+                        <div class="col-4 tic-box"> 4 </div>
+                        <div class="col-4 tic-box"> 5 </div>
+                        <div class="col-4 tic-box"> 6 </div>
+                    </div>
+                    <div class="row tic-row">
+                        <div class="col-4 tic-box"> 7 </div>
+                        <div class="col-4 tic-box"> X </div>
+                        <div class="col-4 tic-box"> O </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</center>
+
+
+
+@code {
+
+}
