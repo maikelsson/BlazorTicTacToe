@@ -9,16 +9,7 @@
 @inject Blazored.SessionStorage.ISessionStorageService sessionStorage
 @inject IConnectionManager connectionManager
 
-
 @implements IDisposable
-
-
-<div>
-    <label>
-        <a>@currentUserName</a>
-    </label>
-</div>
-
 
 <p>
     <button class="btn btn-outline-primary" type="button" data-toggle="collapse" data-target="#multiCollapseExample2" aria-expanded="false" aria-controls="multiCollapseExample2">
@@ -32,7 +23,7 @@
             <div class="col-6 card card-body">
                 @foreach (var user in connectionManager.OnlineUsers)
                 {
-                    <a class="btn-dark" href="/profile/@user">@user</a>
+                    <a class="btn-outline-info" href="/profile/@user">@user</a>
                 }
             </div>
         </div>
@@ -43,16 +34,19 @@
     <div>
 
     </div>
-    <ul id="messagesList">
+    <ul class="list-group" id="messagesList">
         @foreach (var message in messages)
         {
-            <li>@message</li>
+            <li class="list-group-item">@message</li>
         }
     </ul>
-    <div class="form-group">
+    <div class="list-group-item">
         <label>
-            Message:
-            <input @bind="messageInput" size="50" @onkeyup="(e => OnClickEventTest(e))" />
+            <span>
+                @currentUserName:
+
+                <input class="input-group" @bind="messageInput" size="50" @onkeyup="(e => OnClickEventTest(e))" />
+            </span>
         </label>
     </div>
 </div>

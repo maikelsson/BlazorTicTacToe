@@ -2,6 +2,12 @@
 
 <style>
 
+    .scoreboard {
+        background: #ff006e;
+        padding: .4vw;
+        margin: .4vw;
+    }
+
     .ads {
         text-align: center;
         margin: .4vw 0;
@@ -35,26 +41,43 @@
         background: #20948B;
     }
 
+    .button {
+        width: 100%;
+        display: block;
+    }
+
+    .player-details {
+        background: #6AB187;
+        text-align: center;
+    }
+
 </style>
 
-<center>
-    <h3>Board</h3>
-</center>
+<h3>Board</h3>
 
 <center>
     <div class="card-body">
+        <div class="card-header">
+            Board
+        </div>
         <div class="row">
             <div class="col-12 col-sm-6">
+                <div class="container-fluid tic-panel">
+                    <h3>Select side:</h3>
+                    <button class="btn-primary" @onclick="@(e => selectedSide = "X")">X</button>
+                    <button class="btn-primary" @onclick="@(e => selectedSide = "O")">O</button>
+                </div>
+
                 <div class="container-fluid tic-container">
                     <div class="row tic-row">
-                        <div class="col-4 tic-box"> 1 </div>
-                        <div class="col-4 tic-box"> 2 </div>
-                        <div class="col-4 tic-box"> 3 </div>
+                        <div class="col-4 tic-box button" @onclick="((e) => OnBoxClick(e, 0, 0))">@boardState3D[0, 0]:</div>
+                        <div class="col-4 tic-box button" @onclick="((e) => OnBoxClick(e, 0, 1))">@boardState3D[0, 1]:</div>
+                        <div class="col-4 tic-box button" @onclick="((e) => OnBoxClick(e, 0, 2))">@boardState3D[0, 2]:</div>
                     </div>
                     <div class="row tic-row">
-                        <div class="col-4 tic-box"> 4 </div>
-                        <div class="col-4 tic-box"> 5 </div>
-                        <div class="col-4 tic-box"> 6 </div>
+                        <div class="col-4 tic-box">k</div>
+                        <div class="col-4 tic-box">k</div>
+                        <div class="col-4 tic-box">k</div>
                     </div>
                     <div class="row tic-row">
                         <div class="col-4 tic-box"> 7 </div>
@@ -63,7 +86,20 @@
                     </div>
                 </div>
             </div>
+            <div class="col-12 col-sm-6">
+                <div class="container-fluid scoreboard">
+                    <div class="row">
+                        <div class="col-3 player-details">ss</div>
+                        <div class="col-6">Versus</div>
+                        <div class="col-3 player-details">ss</div>
+                    </div>  
+                    <div class="row">
+                        <h3>sadas</h3>
+                    </div>
+                </div>
+            </div>
         </div>
+        
     </div>
 </center>
 
@@ -71,4 +107,22 @@
 
 @code {
 
+
+    private string selectedSide;
+
+    private string[,] boardState3D = new string[3, 3] { {" ", " ", " " },
+                                                        {" ", " ", " " },
+                                                        {" ", " ", " " } };
+
+    private void OnBoxClick(EventArgs e, int row, int col)
+    {
+        if(boardState3D[row, col] != " " || selectedSide == null)
+        {
+            return;
+        }
+        else
+        {
+            boardState3D[row, col] = selectedSide;
+        }
+    }
 }
