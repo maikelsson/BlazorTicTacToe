@@ -73,12 +73,20 @@ namespace BlazorServerApp_Chess
             app.UseAuthentication();
             app.UseAuthorization();
 
+            app.UseSignalR(routes =>
+            {
+                routes.MapHub<ChatHub>("/chathub");
+                routes.MapHub<GameHub>("/gamehub");
+            });
+
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapBlazorHub();
                 endpoints.MapFallbackToPage("/_Host");
-                endpoints.MapHub<ChatHub>("/chathub");
+
             });
+
+            
         }
     }
 }

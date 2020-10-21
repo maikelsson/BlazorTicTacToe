@@ -11,15 +11,27 @@
 
 @implements IDisposable
 
-<p>
-    <button class="btn btn-outline-primary" type="button" data-toggle="collapse" data-target="#multiCollapseExample2" aria-expanded="false" aria-controls="multiCollapseExample2">
-        <span class="oi oi-person"></span> Users <span class="badge badge-primary badge-pill">@usersConnectedCount</span>
-    </button>
-</p>
+<style>
+    .container {
+        margin: 20px;
+    }
+</style>
 
 <div class="row">
-    <div class="col">
-        <div class="collapse multi-collapse" id="multiCollapseExample2">
+    <div class="col-12 col-sm-6 container">
+        <div class="col-6">
+            <button class="btn btn-outline-primary" type="button" data-toggle="collapse" data-target="#multiCollapseExample2" aria-expanded="false" aria-controls="multiCollapseExample2">
+                <span class="oi oi-person"></span> Users <span class="badge badge-primary badge-pill">@usersConnectedCount</span>
+            </button>
+        </div>
+        
+    </div>
+    
+</div>
+
+<div class="row">
+    <div class="col-12 col-sm-6">
+        <div class="collapse multi-collapse col-6" id="multiCollapseExample2">
             <div class="col-6 card card-body">
                 @foreach (var user in connectionManager.OnlineUsers)
                 {
@@ -30,25 +42,23 @@
     </div>
 </div>
 
-<div>
-    <div>
+<div class="row">
+    <div class="col-12 col-sm-6">
+        <div class="col-6">
+            <ul class="list-group" id="messagesList">
+                @foreach (var message in messages)
+                {
+                    <li class="list-group-item">@message</li>
+                }
+            </ul>
+            <div class="list-group-item">
 
+                <p>@currentUserName:</p><input class="input-group" @bind="messageInput" size="50" @onkeyup="(e => OnClickEventTest(e))" />
+            </div>
+        </div>
+        
     </div>
-    <ul class="list-group" id="messagesList">
-        @foreach (var message in messages)
-        {
-            <li class="list-group-item">@message</li>
-        }
-    </ul>
-    <div class="list-group-item">
-        <label>
-            <span>
-                @currentUserName:
-
-                <input class="input-group" @bind="messageInput" size="50" @onkeyup="(e => OnClickEventTest(e))" />
-            </span>
-        </label>
-    </div>
+    
 </div>
 
 
