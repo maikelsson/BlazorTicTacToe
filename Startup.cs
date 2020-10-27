@@ -1,16 +1,9 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using BlazorServerApp_Chess.Data;
-using Microsoft.AspNetCore.ResponseCompression;
 using BlazorServerApp_Chess.Hubs;
 using DataAccessLibrary;
 using Microsoft.AspNetCore.Components.Authorization;
@@ -85,7 +78,7 @@ namespace BlazorServerApp_Chess
                 endpoints.MapFallbackToPage("/_Host");
                 endpoints.MapHub<ChatHub>("/chathub");
                 endpoints.MapHub<GameHub>("/gamehub");
-
+                endpoints.MapHub<LobbyHub>("/lobbyhub");
             });
 
             

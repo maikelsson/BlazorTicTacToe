@@ -1,0 +1,114 @@
+﻿@page "/lobby"
+
+@using Microsoft.AspNetCore.SignalR.Client
+
+@inject NavigationManager NavigationManager
+
+@implements IDisposable
+
+<center>
+    <div class="card" style="width: 25rem;">
+        <div class="card-header">
+            Lobby
+        </div>
+        <div class="card-body">
+            @if (isSearchingMatch)
+            {
+                <div class="spinner-border">
+                    <span class="sr-only">Searching match..</span>
+                </div>
+                <p>Looking for opponent..</p>
+
+            }
+            <div>
+                <button class="btn btn-success" @onclick="((e) => InitializeHubConnection())" disabled="@isSearchingMatch"><span class="oi oi-magnifying-glass"></span></button>
+                <button class="btn btn-danger"><span class="oi oi-x" @onclick="((e) => CancelMatchMaking())"></span></button>
+            </div>
+        </div>
+        @if (isSearchingMatch)
+        {
+            <div class="card-footer">Users searching count: @usersSearchingCount</div>
+        }
+        else
+        {
+            <div class="card-footer">Default...</div>
+
+        }
+    </div>
+</center>
+
+@code {
+
+    private bool isSearchingMatch = false;
+    private int usersSearchingCount = 0;
+
+    private HubConnection hubConnection;
+
+    public bool IsConnected =>
+        hubConnection.State == HubConnectionState.Connected;
+
+    protected override async Task OnInitializedAsync()
+    {
+        Console.WriteLine("OnInitialized");
+
+        if (!isSearchingMatch)
+        {
+            return;
+        }
+        else
+        {
+            await InitializeHubConnection();
+        }
+    }
+
+    public async Task InitializeHubConnection()
+    {
+
+        isSearchingMatch = true;
+
+        hubConnection = new HubConnectionBuilder()
+                .WithUrl(NavigationManager.ToAbsoluteUri("/lobbyhub"))
+                .Build();
+
+        hubConnection.On<int>("ReceiveUsersCount", (count) =>
+        {
+            usersSearchingCount = count;
+            StateHasChanged();
+
+            if(usersSearchingCount == 2)
+            {
+                //Works currently but needs better solution
+                NavigationManager.NavigateTo("/gamehub");
+            }
+        });
+
+        await hubConnection.StartAsync();
+
+        Console.WriteLine("HubConnection initialized");
+
+    }
+
+    public async void CancelMatchMaking()
+    {
+        isSearchingMatch = false;
+        Dispose();
+
+        await InvokeAsync(() =>
+        {
+            StateHasChanged();
+        });
+
+    }
+
+    public void Dispose()
+    {
+
+        if(hubConnection == null)
+        {
+            return;
+        }
+
+        _ = hubConnection.DisposeAsync();
+
+    }
+}

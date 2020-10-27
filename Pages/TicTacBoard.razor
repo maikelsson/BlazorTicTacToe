@@ -5,7 +5,6 @@
 @inject Blazored.SessionStorage.ISessionStorageService sessionStorage
 @inject NavigationManager NavigationManager
 
-
 <style>
 
     .scoreboard {
@@ -152,12 +151,8 @@
         </div>
     </center>
 
-
-
-
 @code {
 
-    private HubConnection hubConnection;
 
     private bool isSearchingOpponent = false;
     private string selectedSide;
@@ -166,9 +161,10 @@
 
     private string[,] boardState3D;
 
+    private HubConnection hubConnection;
+
     public bool IsConnected =>
         hubConnection.State == HubConnectionState.Connected;
-
 
     protected override async Task OnInitializedAsync()
     {
@@ -178,11 +174,17 @@
             .WithUrl(NavigationManager.ToAbsoluteUri("/gamehub"))
             .Build();
 
+        hubConnection.On<string[,]>("ReceiveUsersCount", (arr) =>
+        {
+            boardState3D = arr;
+            StateHasChanged();
+        });
+
         await hubConnection.StartAsync();
 
         if(IsConnected)
         {
-            Console.WriteLine("TicTac OnInitialized");
+            Console.WriteLine("Game OnInitialized");
         }
     }
 

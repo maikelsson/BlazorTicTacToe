@@ -31,8 +31,8 @@ namespace BlazorServerApp_Chess.Hubs
         {
             if (!connectionIds.Contains(Context.ConnectionId))
             {
+                var userName = Context.User.Identity.Name;
                 connectionIds.Add(Context.ConnectionId);
-                _connectionManager.AddConnection(Context.User.Identity.Name, Context.ConnectionId);
                 await Clients.All.SendAsync("ReceiveUsersCount", connectionIds.Count);
             }
             
@@ -41,6 +41,7 @@ namespace BlazorServerApp_Chess.Hubs
 
         public override Task OnDisconnectedAsync(Exception exception)
         {
+            
             connectionIds.Remove(Context.ConnectionId);
             Clients.All.SendAsync("ReceiveUsersCount", connectionIds.Count);
             return base.OnDisconnectedAsync(exception);

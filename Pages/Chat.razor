@@ -52,8 +52,9 @@
                 }
             </ul>
             <div class="list-group-item">
-
-                <p>@currentUserName:</p><input class="input-group" @bind="messageInput" size="50" @onkeyup="(e => OnClickEventTest(e))" />
+                <div>
+                    <label>@currentUserName:<span><input class="input-group" @bind="messageInput" size="50" @onkeyup="(e => OnClickEventTest(e))" /></span></label>
+                </div>
             </div>
         </div>
         
@@ -108,12 +109,11 @@
         if (firstRender)
         {
             currentUserName = await sessionStorage.GetItemAsync<string>("userName");
-
             if (!connectionManager.OnlineUsers.Contains(currentUserName))
             {
                 connectionManager.AddConnection(currentUserName, hubConnection.ConnectionId);
             }
-            else
+            else 
             {
                 connectionManager.UpdateConnectionId(currentUserName, hubConnection.ConnectionId);
             }
