@@ -174,7 +174,7 @@
             .WithUrl(NavigationManager.ToAbsoluteUri("/gamehub"))
             .Build();
 
-        hubConnection.On<string[,]>("ReceiveUsersCount", (arr) =>
+        hubConnection.On<string[,]>("ReceivePlayerMove", (arr) =>
         {
             boardState3D = arr;
             StateHasChanged();
@@ -197,7 +197,10 @@
         }
     }
 
-    private void OnBoxClick(EventArgs e, int row, int col)
+    Task SendPlayerMove() =>
+        hubConnection.SendAsync("SendPlayerMove", boardState3D);
+
+    private async Task OnBoxClick(EventArgs e, int row, int col)
     {
         if (boardState3D[row, col] != " " || selectedSide == null)
         {
@@ -205,7 +208,9 @@
         }
         else
         {
-            boardState3D[row, col] = selectedSide;
+            boardState3D[row, col] = selectedSide; // X or O
+            await Task.FromResult(hubConnection.SendAsync("SendPlayerMove", boardState3D));
+            StateHasChanged();
         }
     }
 

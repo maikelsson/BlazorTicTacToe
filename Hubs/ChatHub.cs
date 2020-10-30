@@ -31,7 +31,6 @@ namespace BlazorServerApp_Chess.Hubs
         {
             if (!connectionIds.Contains(Context.ConnectionId))
             {
-                var userName = Context.User.Identity.Name;
                 connectionIds.Add(Context.ConnectionId);
                 await Clients.All.SendAsync("ReceiveUsersCount", connectionIds.Count);
             }
@@ -49,6 +48,7 @@ namespace BlazorServerApp_Chess.Hubs
 
         public async Task SendMessage(string user, string message)
         {
+            Console.WriteLine("SendMessage");
             await Clients.All.SendAsync("ReceiveMessage", user, message);
         }
 
