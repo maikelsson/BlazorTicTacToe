@@ -1,165 +1,103 @@
 ﻿@page "/gamehub"
 
 @using Microsoft.AspNetCore.SignalR.Client
+@using BlazorServerApp_Chess.Data
+@using BlazorServerApp_Chess.Models
+@using BlazorServerApp_Chess.Services
 
 @inject Blazored.SessionStorage.ISessionStorageService sessionStorage
 @inject NavigationManager NavigationManager
+@inject IConnectionManager connectionManager
+
+@implements IDisposable
 
 <style>
 
-    .scoreboard {
-        padding: .4vw;
-        margin: .4vw;
-    }
-
-    .ads {
-        text-align: center;
-        margin: .4vw 0;
-        background: #F4CC70;
-        padding: .4vw;
-    }
-
-    .content {
-        margin: .4vw 0;
-        padding: .4vw;
-    }
-
-    .tic-panel {
-        border: solid 2px black;
-        margin: .4vw 0;
-        background: #66A5AD;
-        padding: .4vw;
-    }
-
-    .tic-box {
-        border: solid black 1px;
-        font-size: 5vw;
-        background: #6AB187;
-        text-align: center;
-        color: lavender;
-        width: 2%;
-        height: 2%;
-    }
-
-        .tic-box:hover {
-            background: #20948B;
-        }
-
-    .tic-container {
-        border: solid red 3px;
-        margin: -2px;
-    }
-
-    .player-details {
+    .board {
+        background-color: white;
         display: flex;
-        justify-content: center;
-        align-items: center;
+        flex-direction: row;
+        max-width: 50%;
+        min-width: 50%;
+    }
+
+    .column {
+        min-width: 60px;
+        min-height: 60px;
+        height: 100%;
+    }
+
+    .gamepiece {
+        border: solid 1px black;
+        min-height: 60px;
+        min-width: 60px;
+    }
+
+    .x {
+        background-image: url(../css/images/letter-x.png);
+        background-repeat: no-repeat;
+    }
+
+    .o {
+        background-image: url(../css/images/letter-o.png);
+        background-repeat: no-repeat;
+    }
+
+    .blank {
+        background-image: none;
     }
 </style>
 
 <h3>Board</h3>
 
-<center>
-        <div class="card-body">
-            <div class="card-header">
-                Board
+<div>
+    <div>
+        Board
+    </div>
+    <div class="board">
+        @for (int i = 0; i < 3; i++)
+        {
+            <div class="column">
+                @for (int j = 0; j < 3; j++)
+                {
+                    int x = i;
+                    int y = j;
+                    <div class="gamepiece
+                         @gameService.gameBoard.Board[i, j].Style.ToString().ToLower()" @onclick="((e) => gameService.gameBoard.PieceClicked(x, y))">
+                    </div>
+                }
             </div>
-            <div class="row">
-                <div class="col-12 col-sm-6">
-                    <div class="container-fluid tic-panel">
-                        <h3>Select side:</h3>
-                        <button class="btn btn-primary" @onclick="@(e => selectedSide = "X")">X</button>
-                        <button class="btn btn-primary" @onclick="@(e => selectedSide = "O")">O</button>
-                    </div>
+        }
+    </div>
 
-                    <div class="container-fluid tic-container">
-                        <div class="row tic-row">
-                            <div class="col-4 tic-box button" @onclick="((e) => OnBoxClick(e, 0, 0))">
-                                <p>&nbsp;@boardState3D[0, 0]</p>
-                            </div>
-                            <div class="col-4 tic-box button" @onclick="((e) => OnBoxClick(e, 0, 1))">
-                                <p>&nbsp;@boardState3D[0, 1]</p>
-                            </div>
-                            <div class="col-4 tic-box button" @onclick="((e) => OnBoxClick(e, 0, 2))">
-                                <p>&nbsp;@boardState3D[0, 2]</p>
-                            </div>
-                        </div>
-                        <div class="row tic-row">
-                            <div class="col-4 tic-box button" @onclick="((e) => OnBoxClick(e, 1, 0))">
-                                <p>&nbsp;@boardState3D[1, 0]</p>
-                            </div>
-                            <div class="col-4 tic-box button" @onclick="((e) => OnBoxClick(e, 1, 1))">
-                                <p>&nbsp;@boardState3D[1, 1]</p>
-                            </div>
-                            <div class="col-4 tic-box button" @onclick="((e) => OnBoxClick(e, 1, 2))">
-                                <p>&nbsp;@boardState3D[1, 2]</p>
-                            </div>
-                        </div>
-                        <div class="row tic-row">
-                            <div class="col-4 tic-box button" @onclick="((e) => OnBoxClick(e, 2, 0))">
-                                <p>&nbsp;@boardState3D[2, 0]</p>
-                            </div>
-                            <div class="col-4 tic-box button" @onclick="((e) => OnBoxClick(e, 2, 1))">
-                                <p>&nbsp;@boardState3D[2, 1]</p>
-                            </div>
-                            <div class="col-4 tic-box button" @onclick="((e) => OnBoxClick(e, 2, 2))">
-                                <p>&nbsp;@boardState3D[2, 2]</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-12 col-sm-6">
-                    <div class="container-fluid scoreboard">
-                        <div class="row">
-                            <div class="col-3">
-                                <h5>0</h5>
-                            </div>
-                            <div class="col-6"></div>
-                            <div class="col-3">
-                                <h5>0</h5>
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-3 player-details">@currentUserName</div>
-                            <div class="col-6">
-                                @if (isSearchingOpponent)
-                                {
-                                    <div class="spinner-border text-primary" role="status">
-
-                                    </div>
-                                    <button class="btn btn-danger" @onclick="((e) => isSearchingOpponent = false)"><span class="oi oi-x"></span></button>
-
-
-                                }
-                                else
-                                {
-                                    <button class="btn btn-success" @onclick="OnStartFindingGame" disabled="@isSearchingOpponent"><span class="oi oi-magnifying-glass"></span></button>
-                                }
-                            </div>
-                            <div class="col-3 player-details">@opponentUserName</div>
-                        </div>
-                        <div class="row">
-                            <div class="col-12">
-                                <button class="btn btn-warning" @onclick="ResetBoard">Reset</button>
-                            </div>
-                        </div>
-                    </div>
-
-                </div>
-            </div>
+</div>
+@if (IsConnected)
+{
+    <div>
+        <h1>Players:</h1>
+        @foreach (var p in players)
+        {
+        <div>
+            <p>@p.Username : @p.ConnectionId</p>
 
         </div>
-    </center>
+        }
+    </div>
+}
+
+
 
 @code {
 
-
-    private bool isSearchingOpponent = false;
-    private string selectedSide;
+    private bool isSearchingOpponent = true;
     private string currentUserName = "";
-    private string opponentUserName = "testiOpponent";
+    private string selectedSide = "";
+
+    private static GameService gameService;
 
     private string[,] boardState3D;
+
+    public List<PlayerModel> players;
 
     private HubConnection hubConnection;
 
@@ -168,23 +106,30 @@
 
     protected override async Task OnInitializedAsync()
     {
-        ResetBoard();
+        players = new List<PlayerModel>();
+        gameService = new GameService();
 
         hubConnection = new HubConnectionBuilder()
             .WithUrl(NavigationManager.ToAbsoluteUri("/gamehub"))
             .Build();
 
-        hubConnection.On<string[,]>("ReceivePlayerMove", (arr) =>
+        hubConnection.On<List<PlayerModel>>("ReceiveAllPlayers", (p) =>
         {
-            boardState3D = arr;
+            Console.WriteLine("On: Players count: ", players.Count);
+            players.AddRange(p);
             StateHasChanged();
         });
 
         await hubConnection.StartAsync();
 
-        if(IsConnected)
+        if (IsConnected)
         {
             Console.WriteLine("Game OnInitialized");
+            foreach(var p in players)
+            {
+                Console.WriteLine($"Game.razor : {p.Username}");
+
+            }
         }
     }
 
@@ -193,7 +138,7 @@
         if (firstRender)
         {
             currentUserName = await sessionStorage.GetItemAsync<string>("userName");
-            StateHasChanged();
+            await hubConnection.SendAsync("AddPlayer", currentUserName);
         }
     }
 
@@ -209,7 +154,7 @@
         else
         {
             boardState3D[row, col] = selectedSide; // X or O
-            await Task.FromResult(hubConnection.SendAsync("SendPlayerMove", boardState3D));
+            await Task.FromResult(hubConnection.SendAsync("SendPlayerMove", selectedSide, row, col));
             StateHasChanged();
         }
     }
@@ -222,10 +167,17 @@
     private void ResetBoard()
     {
         boardState3D = new string[3, 3] { {" ", " ", " " },
-                          {" ", " ", " " },
-                          {" ", " ", " " } };
+                  {" ", " ", " " },
+                  {" ", " ", " " } };
 
         StateHasChanged();
 
+    }
+
+    public async void Dispose()
+    {
+        await hubConnection.SendAsync("DeletePlayer", hubConnection.ConnectionId);
+        connectionManager.RemoveConnection(hubConnection.ConnectionId);
+        _ = hubConnection.DisposeAsync();
     }
 }

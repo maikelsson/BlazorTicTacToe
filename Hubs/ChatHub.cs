@@ -11,11 +11,6 @@ using System.Threading.Tasks;
 
 namespace BlazorServerApp_Chess.Hubs
 {
-    public static class UserHandler
-    {
-
-    }
-
     public class ChatHub : Hub
     {
 
