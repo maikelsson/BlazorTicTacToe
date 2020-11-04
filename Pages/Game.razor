@@ -8,6 +8,7 @@
 @inject Blazored.SessionStorage.ISessionStorageService sessionStorage
 @inject NavigationManager NavigationManager
 @inject IConnectionManager connectionManager
+@inject IGameService gameService
 
 @implements IDisposable
 
@@ -18,13 +19,12 @@
         display: flex;
         flex-direction: row;
         max-width: 50%;
-        min-width: 50%;
+        min-height: 50%;
     }
 
     .column {
         min-width: 60px;
         min-height: 60px;
-        height: 100%;
     }
 
     .gamepiece {
@@ -50,50 +50,67 @@
 
 <h3>Board</h3>
 
-<div>
-    <div>
-        Board
-    </div>
-    <div class="board">
-        @for (int i = 0; i < 3; i++)
-        {
-            <div class="column">
-                @for (int j = 0; j < 3; j++)
-                {
-                    int x = i;
-                    int y = j;
-                    <div class="gamepiece
-                         @gameService.gameBoard.Board[i, j].Style.ToString().ToLower()" @onclick="((e) => gameService.gameBoard.PieceClicked(x, y))">
-                    </div>
-                }
-            </div>
-        }
-    </div>
-
-</div>
-@if (IsConnected)
-{
-    <div>
-        <h1>Players:</h1>
-        @foreach (var p in players)
-        {
-        <div>
-            <p>@p.Username : @p.ConnectionId</p>
-
+<div class="container">
+    <div class="row">
+        <div class="col-4">
+            <h5>@userName</h5>
         </div>
-        }
+        <div class="col-4">
+            <button class="btn btn-success">Reset</button>
+        </div>
     </div>
-}
+    <div class="row">
+        <div class="col-4">
+            <p>@userScore</p>
+        </div>
+    </div>
+</div>
 
+<div class="container">
+    <div class="row">
+        <div class="col-12 board">
+            @for (int i = 0; i < 3; i++)
+            {
+                <div class="column">
+                    @for (int j = 0; j < 3; j++)
+                    {
+                        int x = i;
+                        int y = j;
+                        <div class="gamepiece
+                                    @gameService.gameBoard.Board[i, j].Style.ToString().ToLower()" 
+                                    @onclick="((e) => PlayerClickedEmptySpace(x, y))">
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+</div>
 
+<div class="container">
+    <div class="row">
+        <div class="col-4">
+            <h5>@opponentName</h5>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-4">
+            <p>@opponentScore</p>
+        </div>
+    </div>
+</div>
 
 @code {
 
     private bool isSearchingOpponent = true;
-    private string currentUserName = "";
-    private string selectedSide = "";
 
-    private static GameService gameService;
+    private string userName = "";
+    private int userScore = 0;
+
+    private string opponentName;
+    private string opponentId;
+    private bool opponentReadyState;
+    private int opponentScore = 0;
 
     private string[,] boardState3D;
 
@@ -106,77 +123,50 @@
 
     protected override async Task OnInitializedAsync()
     {
-        players = new List<PlayerModel>();
-        gameService = new GameService();
 
         hubConnection = new HubConnectionBuilder()
             .WithUrl(NavigationManager.ToAbsoluteUri("/gamehub"))
             .Build();
 
-        hubConnection.On<List<PlayerModel>>("ReceiveAllPlayers", (p) =>
+        hubConnection.On<string, string, bool>("ReceivePlayerInformation", (id, username, isready) =>
         {
-            Console.WriteLine("On: Players count: ", players.Count);
-            players.AddRange(p);
+            Console.WriteLine("Receiving opponentInfo");
+            opponentId = id;
+            opponentName = username;
+            opponentReadyState = isready;
+            StateHasChanged();
+        });
+
+        hubConnection.On<int, int>("ReceivePlayerClickedEmptySpace", (row, col) =>
+        {
+            gameService.gameBoard.PieceClicked(row, col);
             StateHasChanged();
         });
 
         await hubConnection.StartAsync();
 
-        if (IsConnected)
-        {
-            Console.WriteLine("Game OnInitialized");
-            foreach(var p in players)
-            {
-                Console.WriteLine($"Game.razor : {p.Username}");
+    }
 
-            }
-        }
+
+    private async Task PlayerClickedEmptySpace(int row, int col)
+    {
+
+        await hubConnection.SendAsync("SendPlayerMove", row, col);
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
         {
-            currentUserName = await sessionStorage.GetItemAsync<string>("userName");
-            await hubConnection.SendAsync("AddPlayer", currentUserName);
-        }
-    }
-
-    Task SendPlayerMove() =>
-        hubConnection.SendAsync("SendPlayerMove", boardState3D);
-
-    private async Task OnBoxClick(EventArgs e, int row, int col)
-    {
-        if (boardState3D[row, col] != " " || selectedSide == null)
-        {
-            return;
-        }
-        else
-        {
-            boardState3D[row, col] = selectedSide; // X or O
-            await Task.FromResult(hubConnection.SendAsync("SendPlayerMove", selectedSide, row, col));
+            // When connected get a username and send trigger to add player (connection) to an list in a gamehub
+            userName = await sessionStorage.GetItemAsync<string>("userName");
+            await hubConnection.SendAsync("AddPlayer", userName);
             StateHasChanged();
         }
     }
 
-    private void OnStartFindingGame()
+    public void Dispose()
     {
-        isSearchingOpponent = true;
-    }
-
-    private void ResetBoard()
-    {
-        boardState3D = new string[3, 3] { {" ", " ", " " },
-                  {" ", " ", " " },
-                  {" ", " ", " " } };
-
-        StateHasChanged();
-
-    }
-
-    public async void Dispose()
-    {
-        await hubConnection.SendAsync("DeletePlayer", hubConnection.ConnectionId);
         connectionManager.RemoveConnection(hubConnection.ConnectionId);
         _ = hubConnection.DisposeAsync();
     }

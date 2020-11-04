@@ -12,6 +12,7 @@ namespace BlazorServerApp_Chess.Models
         public string ConnectionId { get; set; }
         public PieceStyle currentSide { get; set; }
         public bool IsReady = false;
+        public bool IsPlayerTurn = false;
         public PlayerModel(string connectionId, string username)
         {
             ConnectionId = connectionId;

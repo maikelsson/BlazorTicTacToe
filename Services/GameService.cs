@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 
 namespace BlazorServerApp_Chess.Services
 {
-    public class GameService
+    public class GameService : IGameService
     {
-        public GameBoard gameBoard;
+        public GameBoard gameBoard { get; set; }
         public List<PlayerModel> players { get; set; }
         public GameService()
         {

@@ -5,7 +5,6 @@ using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
 
 namespace BlazorServerApp_Chess.Hubs
@@ -14,15 +13,22 @@ namespace BlazorServerApp_Chess.Hubs
     {
         public static List<PlayerModel> players = new List<PlayerModel>();
         public static HashSet<string> connectionIds = new HashSet<string>();
-        public static GameService gameService;
+        public PlayerModel player;
 
-        public GameHub()
-        {
-
-        }
+        public bool joinedSecond;
 
         public override async Task OnConnectedAsync()
         {
+
+            if (Context.ConnectionId == null) return;
+            if (players.Count == 2) return; //room full
+
+            if (players.Count == 1) // Receive info from opponent if connected second
+            {
+                var other = players.First();
+                await Clients.Caller.SendAsync("ReceivePlayerInformation", other.ConnectionId, other.Username, other.IsReady);
+            }
+
             Console.WriteLine($"{Context.ConnectionId} connected to GameHub!");
             connectionIds.Add(Context.ConnectionId);
 
@@ -44,29 +50,24 @@ namespace BlazorServerApp_Chess.Hubs
                 player = new PlayerModel(Context.ConnectionId, name);
                 players.Add(player);
             }
+
             Console.WriteLine("Added player");
-            await GetAllPlayers(players);
+            await SendPlayerInformation(player.ConnectionId, player.Username, player.IsReady);
+
         }
 
-        public async Task GetAllPlayers(List<PlayerModel> pl)
+        public async Task SendPlayerInformation(string id, string userName, bool isready)
         {
-            Console.WriteLine("GetAllPlayers");
-            Console.WriteLine(players.Count);
-            foreach(var p in players)
-            {
-                Console.WriteLine($"{p.Username}");
-            }
-            
-            await Clients.All.SendAsync("ReceiveAllPlayers", pl);
+            //Sends player info to other user
+            await Clients.AllExcept(Context.ConnectionId).SendAsync("ReceivePlayerInformation", id, userName, isready);
         }
 
-        public async Task SendPlayerMove(string c, int row, int col)
+        public async Task SendPlayerMove(int col, int row)
         {
-            Console.WriteLine("OnSendPlayerMove");
-            await Clients.All.SendAsync("ReceivePlayerMove", c, row, col);
+            await Clients.All.SendAsync("ReceivePlayerClickedEmptySpace", col, row);
         }
 
-        public async Task DeletePlayer(string id)
+        public void DeletePlayer(string id)
         {
             PlayerModel player;
             lock (players)
@@ -79,12 +80,12 @@ namespace BlazorServerApp_Chess.Hubs
                 }
             }
 
-            Console.WriteLine("Deleted player");
-            await GetAllPlayers(players);
+            Console.WriteLine($"Deleted player --- players count: {players.Count}");
         }
 
         public override Task OnDisconnectedAsync(Exception exception)
         {
+            DeletePlayer(Context.ConnectionId);
             connectionIds.Remove(Context.ConnectionId);
             return base.OnDisconnectedAsync(exception);
         }

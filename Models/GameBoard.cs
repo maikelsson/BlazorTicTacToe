@@ -36,6 +36,7 @@ namespace BlazorServerApp_Chess.Models
             {
                 clickedSpace.Style = CurrentTurn;
                 SwitchTurns();
+                Console.WriteLine("cliced space" + Board.Length);
             }
         }
 
