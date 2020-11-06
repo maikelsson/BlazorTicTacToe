@@ -30,8 +30,8 @@ namespace BlazorServerApp_Chess
                        
             services.AddTransient<ISQLDataAccess, SQLDataAccess>();
             services.AddTransient<IUserData, UserData>();
+            services.AddTransient<IGameService, GameService>();
             services.AddScoped<UserService>();
-            services.AddScoped<IGameService, GameService>();
 
             services.AddBlazoredSessionStorage();
 
