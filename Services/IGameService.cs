@@ -7,6 +7,5 @@ namespace BlazorServerApp_Chess.Services
     {
         GameBoard gameBoard { get; }
         List<PlayerModel> players { get; }
-
     }
 }

@@ -10,14 +10,28 @@ namespace BlazorServerApp_Chess.Models
     {
         public string Username { get; set; }
         public string ConnectionId { get; set; }
-        public PieceStyle currentSide { get; set; }
+        public PieceStyle CurrentSide { get; set; }
+        public bool ConnectedFirst { get; set; }
+        public bool IsPlayerTurn { get; set; }
+
         public bool IsReady = false;
-        public bool IsPlayerTurn = false;
-        public PlayerModel(string connectionId, string username)
+
+        public PlayerModel(string connectionId = "", string username = "", bool connectedFirst = false)
         {
             ConnectionId = connectionId;
             Username = username;
-            currentSide = PieceStyle.Blank;
+            ConnectedFirst = connectedFirst;
+            IsPlayerTurn = ConnectedFirst;
+
+            if (ConnectedFirst)
+            {
+                CurrentSide = PieceStyle.X;
+            }
+            else
+            {
+                CurrentSide = PieceStyle.O;
+            }
+
         }
         
     }

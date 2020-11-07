@@ -53,7 +53,7 @@
 <div class="container">
     <div class="row">
         <div class="col-4">
-            <h5>@userName</h5>
+            <h5>@myPlayerModel.Username<span>@myPlayerModel.CurrentSide.ToString()</span></h5>
         </div>
         <div class="col-4">
             <button class="btn btn-success">Reset</button>
@@ -90,7 +90,7 @@
 <div class="container">
     <div class="row">
         <div class="col-4">
-            <h5>@opponentName</h5>
+            <h5>@opponentPlayerModel.Username<span>@opponentPlayerModel.CurrentSide.ToString()</span></h5>
         </div>
     </div>
     <div class="row">
@@ -102,9 +102,6 @@
 
 @code {
 
-    private bool isSearchingOpponent = true;
-
-    private string userName = "";
     private int userScore = 0;
 
     private string opponentName;
@@ -112,9 +109,8 @@
     private bool opponentReadyState;
     private int opponentScore = 0;
 
-    private string[,] boardState3D;
-
-    public List<PlayerModel> players;
+    public PlayerModel myPlayerModel = new PlayerModel();
+    public PlayerModel opponentPlayerModel = new PlayerModel();
 
     private HubConnection hubConnection;
 
@@ -128,12 +124,24 @@
             .WithUrl(NavigationManager.ToAbsoluteUri("/gamehub"))
             .Build();
 
-        hubConnection.On<string, string, bool>("ReceivePlayerInformation", (id, username, isready) =>
+        hubConnection.On<string, string, Enums.PieceStyle>("ReceiveMyPlayerInformation", (id, name, pieceStyle) =>
+        {
+            Console.WriteLine($"Receiving own info : {pieceStyle.ToString()}");
+            myPlayerModel.ConnectionId = id;
+            myPlayerModel.Username = name;
+            myPlayerModel.CurrentSide = pieceStyle;
+            StateHasChanged();
+        });
+
+        hubConnection.On<string, string>("ReceiveOtherPlayerInformation", (id, name) =>
         {
             Console.WriteLine("Receiving opponentInfo");
-            opponentId = id;
-            opponentName = username;
-            opponentReadyState = isready;
+            opponentPlayerModel.ConnectionId = id;
+            opponentPlayerModel.Username = name;
+            opponentPlayerModel.CurrentSide = myPlayerModel.CurrentSide == Enums.PieceStyle.X ? Enums.PieceStyle.O : Enums.PieceStyle.X;
+
+            // Reset board 
+            gameService.gameBoard.ResetBoard();
             StateHasChanged();
         });
 
@@ -150,16 +158,23 @@
 
     private async Task PlayerClickedEmptySpace(int row, int col)
     {
-
-        await hubConnection.SendAsync("SendPlayerMove", row, col);
+        // Logic here?
+        if(gameService.gameBoard.CurrentTurn == myPlayerModel.CurrentSide)
+        {
+            await hubConnection.SendAsync("SendPlayerMove", row, col, hubConnection.ConnectionId);
+        }
+        else
+        {
+            Console.WriteLine("Not your turn!");
+        }
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
         {
-            // When connected get a username and send trigger to add player (connection) to an list in a gamehub
-            userName = await sessionStorage.GetItemAsync<string>("userName");
+            // When connected get a username and send trigger to add player (connection) to list in a gamehub
+            var userName = await sessionStorage.GetItemAsync<string>("userName");
             await hubConnection.SendAsync("AddPlayer", userName);
             StateHasChanged();
         }

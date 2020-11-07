@@ -31,11 +31,11 @@ namespace BlazorServerApp_Chess
             services.AddTransient<ISQLDataAccess, SQLDataAccess>();
             services.AddTransient<IUserData, UserData>();
             services.AddTransient<IGameService, GameService>();
+
             services.AddScoped<UserService>();
+            services.AddScoped<AuthenticationStateProvider, CustomAuthenticationStateProvider>();
 
             services.AddBlazoredSessionStorage();
-
-            services.AddScoped<AuthenticationStateProvider, CustomAuthenticationStateProvider>();
 
             services.AddSingleton<IConnectionManager, ConnectionManager>();
 
