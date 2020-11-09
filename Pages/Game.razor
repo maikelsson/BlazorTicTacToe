@@ -58,6 +58,14 @@
         <div class="col-4">
             <button class="btn btn-success">Reset</button>
         </div>
+        @if (!gameService.gameBoard.GameComplete)
+        {
+            @gameService.gameBoard.CurrentTurn
+        }
+        else
+        {
+            <p>@gameService.gameBoard.GetWinner().WinningStyle is a winner!</p>
+        }
     </div>
     <div class="row">
         <div class="col-4">
@@ -103,10 +111,6 @@
 @code {
 
     private int userScore = 0;
-
-    private string opponentName;
-    private string opponentId;
-    private bool opponentReadyState;
     private int opponentScore = 0;
 
     public PlayerModel myPlayerModel = new PlayerModel();
@@ -148,6 +152,7 @@
         hubConnection.On<int, int>("ReceivePlayerClickedEmptySpace", (row, col) =>
         {
             gameService.gameBoard.PieceClicked(row, col);
+            CheckGameStatus();
             StateHasChanged();
         });
 
@@ -155,18 +160,52 @@
 
     }
 
-
     private async Task PlayerClickedEmptySpace(int row, int col)
     {
-        // Logic here?
+        // Check 
         if(gameService.gameBoard.CurrentTurn == myPlayerModel.CurrentSide)
         {
             await hubConnection.SendAsync("SendPlayerMove", row, col, hubConnection.ConnectionId);
+            CheckGameStatus();
         }
         else
         {
             Console.WriteLine("Not your turn!");
         }
+    }
+
+    private void SetupGame()
+    {
+        var myOldPieceStyle = myPlayerModel.CurrentSide;
+        myPlayerModel.CurrentSide = opponentPlayerModel.CurrentSide;
+        opponentPlayerModel.CurrentSide = myOldPieceStyle;
+        gameService.gameBoard.ResetBoard();
+        StateHasChanged();
+    }
+
+    private void CheckGameStatus()
+    {
+        if (gameService.gameBoard.GameComplete)
+        {
+            var winningPiece = gameService.gameBoard.GetWinner().WinningStyle;
+            Console.WriteLine(winningPiece.ToString());
+            if(winningPiece == myPlayerModel.CurrentSide)
+            {
+                userScore++;
+            }
+            else
+            {
+                opponentScore++;
+            }
+
+            Task.Delay(1000);
+            SetupGame();
+        }
+        else
+        {
+            Console.WriteLine("No winner yet!");
+        }
+
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
